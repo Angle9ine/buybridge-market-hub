@@ -1,0 +1,69 @@
+{
+  "name": "ile-ojahub",
+  "version": "1.0.0",
+  "description": "BuyBridge Market Hub - Desktop Application",
+  "main": "main.js",
+  "homepage": "./",
+  "scripts": {
+    "start": "electron .",
+    "server": "node server.js",
+    "dev": "concurrently \"npm run server\" \"wait-on http://localhost:3000 && electron .\"",
+    "build": "electron-builder",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "9th Cri-80-vities Empire",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "cloudinary": "^2.9.0",
+    "dotenv": "^17.4.0",
+    "express": "^5.2.1",
+    "multer": "^2.1.1",
+    "openai": "^6.33.0"
+  },
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-is-dev": "^2.0.0",
+    "electron-builder": "^24.13.3",
+    "concurrently": "^8.2.2",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.buybridge.marketHub",
+    "productName": "BuyBridge Market Hub",
+    "files": [
+      "main.js",
+      "preload.js",
+      "server.js",
+      "package.json",
+      "index.html",
+      "order.html",
+      "style.css",
+      "js/**/*",
+      "public/**/*",
+      "images/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icon.png"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
+}

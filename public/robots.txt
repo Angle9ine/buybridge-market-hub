@@ -1,0 +1,24 @@
+# BuyBridge Market Hub - robots.txt
+# This file tells search engines which pages to crawl and index
+
+User-agent: *
+Allow: /
+Allow: /index.html
+Allow: /order.html
+Allow: /sitemap.xml
+Disallow: /node_modules/
+Disallow: /admin/
+Disallow: /.git/
+
+# Specific rules for search engines
+User-agent: Googlebot
+Allow: /
+
+User-agent: Bingbot
+Allow: /
+
+# Crawl delay (time between requests in seconds)
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://buybridge-market-hub.com/sitemap.xml
