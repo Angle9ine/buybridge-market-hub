@@ -26,18 +26,11 @@ const upload = multer({ storage: storage });
 
 app.use(express.json());
 
-// UPDATED: Better static file handling for Electron
-app.use(express.static(__dirname)); 
+app.use(express.static(__dirname));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
-// FORCE HOME ROUTE
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-// ADMIN ROUTE
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
 // ======================

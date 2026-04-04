@@ -1,6 +1,5 @@
 @echo off
-REM BuyBridge Market Hub - Desktop App Launcher
-REM This script starts the server and opens the app in your default browser
+REM BuyBridge Market Hub — start the web server and open the site in your browser
 
 setlocal enabledelayedexpansion
 
@@ -9,7 +8,7 @@ cd /d "%~dp0"
 echo.
 echo ========================================
 echo   BuyBridge Market Hub
-echo   Desktop Application Launcher
+echo   Web server launcher
 echo ========================================
 echo.
 

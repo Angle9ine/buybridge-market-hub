@@ -1,5 +1,4 @@
-# BuyBridge Market Hub - Desktop App Launcher
-# This script starts the server and opens the app in your default browser
+# BuyBridge Market Hub — start the web server and open the site in your browser
 
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $scriptPath
@@ -7,7 +6,7 @@ Set-Location $scriptPath
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "  BuyBridge Market Hub" -ForegroundColor Green
-Write-Host "  Desktop Application Launcher" -ForegroundColor Green
+Write-Host "  Web server launcher" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -25,7 +24,7 @@ Write-Host "Starting BuyBridge server..." -ForegroundColor Yellow
 Write-Host ""
 
 # Start the server in a new PowerShell window (background)
-Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$scriptPath'; npm start" -WindowStyle Normal
+Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$scriptPath'; node server.js" -WindowStyle Normal
 
 # Wait for server to start
 Write-Host "Waiting for server to start (3 seconds)..." -ForegroundColor Yellow
