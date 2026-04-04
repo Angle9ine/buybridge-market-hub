@@ -159,13 +159,23 @@ app.use((req, res) => {
     res.status(404).send('Resource not found on BuyBridge Server.');
 });
 
-// Start Server
-app.listen(port, () => {
+const host = process.env.HOST || '0.0.0.0';
+
+const server = app.listen(port, host, () => {
     console.log(`
     --------------------------------------------------
-    ✅ BuyBridge Server Active
-    🌐 URL: http://localhost:${port}
-    🚀 Status: Ready for Orders
+    BuyBridge server running
+    Open in browser: http://127.0.0.1:${port}
+    (also reachable on your LAN at http://<this-pc-ip>:${port})
     --------------------------------------------------
     `);
+});
+
+server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+        console.error(`Port ${port} is already in use. Stop the other process, or use another port (e.g. PORT=3001 node server.js).`);
+    } else {
+        console.error(err);
+    }
+    process.exit(1);
 });

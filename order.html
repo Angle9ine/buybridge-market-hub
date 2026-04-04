@@ -210,8 +210,18 @@
 </footer>
 
 <script>
+function readStoredJson(key, fallback) {
+    try {
+        const raw = localStorage.getItem(key);
+        if (raw == null || raw === '') return fallback;
+        return JSON.parse(raw);
+    } catch {
+        return fallback;
+    }
+}
+
 function checkRegistration() {
-    const currentCustomer = JSON.parse(localStorage.getItem('currentCustomer'));
+    const currentCustomer = readStoredJson('currentCustomer', null);
     if (!currentCustomer) {
         alert('Please register or login first to place orders.');
         window.location.href = 'index.html#customer-registration';
@@ -225,7 +235,7 @@ function confirmPayment(event) {
 
     if (!checkRegistration()) return;
 
-    const currentCustomer = JSON.parse(localStorage.getItem('currentCustomer'));
+    const currentCustomer = readStoredJson('currentCustomer', null);
     if (!currentCustomer) {
         alert('Please login to confirm payments.');
         return;
@@ -242,7 +252,8 @@ function confirmPayment(event) {
         return;
     }
 
-    const paymentLog = JSON.parse(localStorage.getItem('paymentLog') || '[]');
+    let paymentLog = readStoredJson('paymentLog', []);
+    if (!Array.isArray(paymentLog)) paymentLog = [];
     const record = {
         id: Date.now(),
         userId: currentCustomer.id,
@@ -269,7 +280,8 @@ if (!checkRegistration()) {
 }
 
 function loadPaymentLog() {
-    const paymentLog = JSON.parse(localStorage.getItem('paymentLog') || '[]');
+    let paymentLog = readStoredJson('paymentLog', []);
+    if (!Array.isArray(paymentLog)) paymentLog = [];
     const tableBody = document.getElementById('payment-log-table');
     if (!tableBody) return;
 
@@ -290,7 +302,8 @@ function loadPaymentLog() {
 }
 
 function updatePaymentStatus(id, status) {
-    const paymentLog = JSON.parse(localStorage.getItem('paymentLog') || '[]');
+    let paymentLog = readStoredJson('paymentLog', []);
+    if (!Array.isArray(paymentLog)) paymentLog = [];
     const record = paymentLog.find(x => x.id === id);
     if (!record) return;
     record.status = status;
