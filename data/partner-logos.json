@@ -12,6 +12,7 @@
     { "file": "panasonic.jpeg", "name": "Panasonic" },
     { "file": "pbs.jpeg", "name": "PBS" },
     { "file": "rts.jpeg", "name": "RTS" },
-    { "file": "sharp.jpeg", "name": "Sharp" }
+    { "file": "sharp.jpeg", "name": "Sharp" },
+    { "file": "growatt.png", "name": "Growatt" }
   ]
 }
