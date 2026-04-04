@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalog upload | BuyBridge</title>
+    <style>
+        :root { --gold: #D4AF37; --dark: #121212; --border: #eee; --bg: #fafafa; }
+        * { box-sizing: border-box; }
+        body { font-family: 'Segoe UI', sans-serif; margin: 0; padding: 24px; background: var(--bg); color: var(--dark); line-height: 1.5; max-width: 640px; margin-left: auto; margin-right: auto; }
+        h1 { font-size: 1.35rem; margin-top: 0; }
+        h2 { font-size: 1.05rem; margin: 28px 0 12px; border-bottom: 2px solid var(--gold); padding-bottom: 6px; display: inline-block; }
+        p.note { font-size: 0.88rem; color: #555; background: #fff; border: 1px solid var(--border); padding: 12px; border-radius: 6px; }
+        label { display: block; font-weight: 600; font-size: 0.85rem; margin: 12px 0 4px; }
+        input[type="text"], input[type="number"], textarea, input[type="file"] { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font: inherit; }
+        textarea { min-height: 72px; resize: vertical; }
+        button { margin-top: 14px; background: var(--dark); color: #fff; border: none; padding: 12px 20px; border-radius: 4px; font-weight: 700; cursor: pointer; }
+        button:hover { background: var(--gold); color: var(--dark); }
+        .ok { color: #1b5e20; font-weight: 600; margin-top: 10px; }
+        .err { color: #b71c1c; font-weight: 600; margin-top: 10px; }
+        a { color: var(--dark); font-weight: 600; }
+    </style>
+</head>
+<body>
+    <h1>BuyBridge catalog tools</h1>
+    <p class="note">Run <strong>npm start</strong> (or <code>node server.js</code>) on your computer, then use these forms. They save files under <code>images/products</code> and <code>images/logos</code> and update <code>data/products.json</code> and <code>data/partner-logos.json</code>. Commit those changes to publish on GitHub Pages.</p>
+    <p><a href="/">← Back to storefront</a></p>
+
+    <h2>Add product</h2>
+    <form id="form-product" enctype="multipart/form-data">
+        <label for="p-name">Product name</label>
+        <input id="p-name" name="name" type="text" required maxlength="200" placeholder="e.g. Solar kit 5kW" />
+        <label for="p-price">Price (₦)</label>
+        <input id="p-price" name="price" type="number" required min="0" step="1" placeholder="150000" />
+        <label for="p-category">Category</label>
+        <input id="p-category" name="category" type="text" required maxlength="120" placeholder="e.g. Renewable Energy" />
+        <label for="p-desc">Description (optional, shown on cards when set)</label>
+        <textarea id="p-desc" name="description" maxlength="2000" placeholder="Short description for customers"></textarea>
+        <label for="p-img">Product photo</label>
+        <input id="p-img" name="image" type="file" accept="image/*" required />
+        <button type="submit">Save product</button>
+        <p id="p-msg"></p>
+    </form>
+
+    <h2>Add partner logo</h2>
+    <form id="form-partner" enctype="multipart/form-data">
+        <label for="l-name">Brand name (for alt text)</label>
+        <input id="l-name" name="name" type="text" required maxlength="120" placeholder="e.g. Growatt" />
+        <label for="l-img">Logo image</label>
+        <input id="l-img" name="image" type="file" accept="image/*" required />
+        <button type="submit">Save logo</button>
+        <p id="l-msg"></p>
+    </form>
+
+    <script>
+        async function postForm(url, form, msgEl) {
+            msgEl.textContent = '';
+            msgEl.className = '';
+            const res = await fetch(url, { method: 'POST', body: new FormData(form) });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok) {
+                msgEl.className = 'err';
+                msgEl.textContent = data.error || ('Error ' + res.status);
+                return;
+            }
+            msgEl.className = 'ok';
+            msgEl.textContent = 'Saved. Commit data/ and images/ in git to update the live site.';
+            form.reset();
+        }
+
+        document.getElementById('form-product').addEventListener('submit', (e) => {
+            e.preventDefault();
+            postForm('/api/catalog/product', e.target, document.getElementById('p-msg'));
+        });
+        document.getElementById('form-partner').addEventListener('submit', (e) => {
+            e.preventDefault();
+            postForm('/api/catalog/partner-logo', e.target, document.getElementById('l-msg'));
+        });
+    </script>
+</body>
+</html>

@@ -82,6 +82,7 @@
         .product-card { background: var(--white); padding: 25px; text-align: center; border: 1px solid var(--border); border-radius: 8px; transition: 0.3s; }
         .product-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
         .add-cart-btn { background: var(--gold) !important; color: var(--dark) !important; border: none !important; padding: 12px 25px !important; border-radius: 4px !important; font-weight: 600 !important; cursor: pointer !important; text-transform: uppercase !important; width: 100% !important; margin-top: 10px !important; }
+        .product-card-desc, .category-product-desc { font-size: 0.82rem; color: #555; margin: 8px 0 0; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 
         #cart-preview {
             position: absolute; top: 100%; right: 0; background: var(--white); min-width: 350px; 
@@ -270,49 +271,54 @@
 <footer><p>&copy; 2026 BuyBridge Market Hub</p></footer>
 
 <script>
-const PARTNER_LOGO_BASE = 'images/logos/';
-const PARTNER_LOGOS = [
-    { file: 'afriipower.png', name: 'Afriipower' },
-    { file: 'eastman.png', name: 'Eastman' },
-    { file: 'felicity.png', name: 'Felicity' },
-    { file: 'infinity.jpg', name: 'Infinity' },
-    { file: 'luminous.jpg', name: 'Luminous' },
-    { file: 'apple.jpeg', name: 'Apple' },
-    { file: 'hisense.jpeg', name: 'Hisense' },
-    { file: 'lg.jpeg', name: 'LG' },
-    { file: 'panasonic.jpeg', name: 'Panasonic' },
-    { file: 'pbs.jpeg', name: 'PBS' },
-    { file: 'rts.jpeg', name: 'RTS' },
-    { file: 'sharp.jpeg', name: 'Sharp' }
-];
+let products = [];
+let partnerCatalog = { base: 'images/logos/', partners: [] };
+
+function escapeHtml(str) {
+    if (str == null) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+}
+
+function safeProductImgSrc(url) {
+    const u = String(url || '').trim();
+    if (/^javascript:/i.test(u) || /^data:/i.test(u)) return '';
+    return u;
+}
+
+async function loadCatalogData() {
+    const [pr, lr] = await Promise.all([
+        fetch('data/products.json', { cache: 'no-store' }),
+        fetch('data/partner-logos.json', { cache: 'no-store' })
+    ]);
+    if (!pr.ok) throw new Error('Could not load data/products.json');
+    if (!lr.ok) throw new Error('Could not load data/partner-logos.json');
+    const pj = await pr.json();
+    const lj = await lr.json();
+    products = Array.isArray(pj) ? pj : (pj.products || []);
+    if (!Array.isArray(products)) products = [];
+    partnerCatalog = {
+        base: (lj && lj.base) || 'images/logos/',
+        partners: Array.isArray(lj.partners) ? lj.partners : []
+    };
+}
 
 function renderPartnerLogos() {
     const grid = document.getElementById('brands-grid');
     if (!grid) return;
-    grid.innerHTML = PARTNER_LOGOS.map(
-        (p) => `
+    const base = partnerCatalog.base || 'images/logos/';
+    const list = partnerCatalog.partners || [];
+    grid.innerHTML = list.map((p) => {
+        const src = encodeURI(base + p.file);
+        return `
         <div class="brand-logo">
-            <img src="${PARTNER_LOGO_BASE}${p.file}" alt="${p.name} logo" width="200" height="140" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: contain;">
-        </div>`
-    ).join('');
+            <img src="${src}" alt="${escapeHtml(p.name)} logo" width="200" height="140" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: contain;">
+        </div>`;
+    }).join('');
 }
-
-const products = [
-    { id: 1, name: 'Solar Inverter 5kWh', price: 150000, img: 'https://via.placeholder.com/300x250/D4AF37/121212?text=Solar+Inverter', category: 'Renewable Energy' },
-    { id: 2, name: 'Solar Panels 300W (Set of 4)', price: 280000, img: 'https://via.placeholder.com/300x250/121212/ffffff?text=Solar+Panels', category: 'Renewable Energy' },
-    { id: 3, name: 'Lithium Battery 10kWh', price: 950000, img: 'https://via.placeholder.com/300x250/eeeeee/D4AF37?text=Lithium+Battery', category: 'Renewable Energy' },
-    { id: 4, name: 'Smartphone X2', price: 165000, img: 'https://via.placeholder.com/300x250/eeeeee/121212?text=Smartphone', category: 'Electronics & Gadgets' },
-    { id: 5, name: 'Laptop Pro 14"', price: 400000, img: 'https://via.placeholder.com/300x250/121212/ffffff?text=Laptop', category: 'Electronics & Gadgets' },
-    { id: 6, name: 'CCTV Camera Set (4CH)', price: 45000, img: 'https://via.placeholder.com/300x250/121212/D4AF37?text=CCTV+Set', category: 'Security & Home' },
-    { id: 7, name: 'Power Bank 20,000mAh', price: 25000, img: 'https://via.placeholder.com/300x250/eeeeee/121212?text=Power+Bank', category: 'Electronics & Gadgets' },
-    { id: 8, name: 'Everyday Food Pack', price: 22000, img: 'https://via.placeholder.com/300x250/ffffff/121212?text=Food+Pack', category: 'Everyday Needs' },
-    { id: 9, name: 'Groceries Essentials', price: 18000, img: 'https://via.placeholder.com/300x250/f7f1e4/121212?text=Groceries', category: 'Food & Consumables' },
-    { id: 11, name: 'Denim Jacket', price: 32000, img: 'https://via.placeholder.com/300x250/c0c0c0/121212?text=Denim+Jacket', category: 'Clothing & Apparel' },
-    { id: 12, name: 'Sneakers (Unisex)', price: 28000, img: 'https://via.placeholder.com/300x250/333333/ffffff?text=Sneakers', category: 'Clothing & Apparel' },
-    { id: 10, name: 'Website Design Pro', price: 80000, img: 'https://via.placeholder.com/300x250/eeeeee/D4AF37?text=Web+Design', category: 'Digital Services' },
-    { id: 13, name: 'Business Strategy Session', price: 120000, img: 'https://via.placeholder.com/300x250/121212/ffffff?text=Strategy+Consult', category: 'Consulting' },
-    { id: 15, name: 'Electronics Repair Service', price: 25000, img: 'https://via.placeholder.com/300x250/eeeeee/121212?text=Electronics+Repair', category: 'Maintenance' }
-];
 
 function readStoredJson(key, fallback) {
     try {
@@ -416,16 +422,22 @@ function logout() {
 
 function renderProducts(productsToRender = products) {
     const grid = document.getElementById('products-grid');
-    grid.innerHTML = productsToRender.map(product => `
+    if (!grid) return;
+    grid.innerHTML = productsToRender.map((product) => {
+        const imgSrc = safeProductImgSrc(product.img) || 'https://via.placeholder.com/300x200/eeeeee/999999?text=Image';
+        const desc = (product.description || '').trim();
+        const descBlock = desc ? `<p class="product-card-desc">${escapeHtml(desc)}</p>` : '';
+        return `
         <div class="product-card">
-            <img src="${product.img}" alt="${product.name}" style="width:100%; height:200px; object-fit:cover; border-radius:5px;">
-            <h3 style="margin:15px 0 10px; color:var(--dark);">${product.name}</h3>
-            <p style="font-size:1.2rem; font-weight:800; color:var(--gold);">₦${product.price.toLocaleString()}</p>
-            <button onclick="addToCart(${product.id})" class="add-cart-btn">
+            <img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(product.name)}" style="width:100%; height:200px; object-fit:cover; border-radius:5px;">
+            <h3 style="margin:15px 0 10px; color:var(--dark);">${escapeHtml(product.name)}</h3>
+            <p style="font-size:1.2rem; font-weight:800; color:var(--gold);">₦${Number(product.price).toLocaleString()}</p>
+            ${descBlock}
+            <button onclick="addToCart(${Number(product.id)})" class="add-cart-btn">
                 ${cart.find(item => item.id === product.id) ? '✅ In Cart' : 'Add to Cart'}
             </button>
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
 }
 
 function addToCart(id) {
@@ -463,9 +475,10 @@ function showNotification(message) {
 function filterProducts() {
     const search = document.getElementById('search')?.value.toLowerCase() || '';
     const category = document.getElementById('category')?.value || 'all';
-    const filtered = products.filter(product => {
-        return product.name.toLowerCase().includes(search) && 
-               (category === 'all' || product.category === category);
+    const filtered = products.filter((product) => {
+        const desc = (product.description || '').toLowerCase();
+        const matchText = product.name.toLowerCase().includes(search) || desc.includes(search);
+        return matchText && (category === 'all' || product.category === category);
     });
     renderProducts(filtered);
 }
@@ -473,33 +486,41 @@ function filterProducts() {
 function renderCategoryProducts(category) {
     const categoryProducts = category === 'all'
         ? products
-        : products.filter(product => product.category === category);
+        : products.filter((product) => product.category === category);
 
     const grid = document.getElementById('category-products');
-    grid.innerHTML = categoryProducts.length ? categoryProducts.map(product => `
+    if (!grid) return;
+    grid.innerHTML = categoryProducts.length ? categoryProducts.map((product) => {
+        const imgSrc = safeProductImgSrc(product.img) || 'https://via.placeholder.com/300x200/eeeeee/999999?text=Image';
+        const desc = (product.description || '').trim();
+        const descBlock = desc ? `<p class="category-product-desc">${escapeHtml(desc)}</p>` : '';
+        return `
         <div class="category-product-card">
-            <img src="${product.img}" alt="${product.name}">
-            <h4>${product.name}</h4>
-            <p>₦${product.price.toLocaleString()}</p>
-            <button onclick="addToCart(${product.id})" class="add-cart-btn">
+            <img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(product.name)}">
+            <h4>${escapeHtml(product.name)}</h4>
+            <p>₦${Number(product.price).toLocaleString()}</p>
+            ${descBlock}
+            <button onclick="addToCart(${Number(product.id)})" class="add-cart-btn">
                 ${cart.find(item => item.id === product.id) ? '✅ In Cart' : 'Add to Cart'}
             </button>
-        </div>
-    `).join('') : '<p style="text-align:center; color:#888;">No products yet in this category.</p>';
+        </div>`;
+    }).join('') : '<p style="text-align:center; color:#888;">No products yet in this category.</p>';
 }
 
 function initializeCategoryGallery() {
-    const categories = ['all', 'Renewable Energy', 'Electronics & Gadgets', 'Everyday Needs', 'Food & Consumables', 'Clothing & Apparel', 'Security & Home', 'Digital Services'];
+    const fromData = [...new Set(products.map((p) => p.category).filter(Boolean))].sort((a, b) => a.localeCompare(b));
+    const categories = ['all', ...fromData];
     const chips = document.getElementById('category-chips');
-    chips.innerHTML = categories.map(cat => `
-        <span class="category-chip ${cat === 'all' ? 'active' : ''}" onclick="selectCategory('${cat}')">${cat === 'all' ? 'All Products' : cat}</span>
+    if (!chips) return;
+    chips.innerHTML = categories.map((cat) => `
+        <span class="category-chip ${cat === 'all' ? 'active' : ''}" data-category="${escapeHtml(cat)}" onclick="selectCategory(this.dataset.category)">${cat === 'all' ? 'All Products' : escapeHtml(cat)}</span>
     `).join('');
     renderCategoryProducts('all');
 }
 
 function selectCategory(category) {
-    document.querySelectorAll('.category-chip').forEach(chip => {
-        chip.classList.toggle('active', chip.textContent === (category === 'all' ? 'All Products' : category));
+    document.querySelectorAll('.category-chip').forEach((chip) => {
+        chip.classList.toggle('active', chip.dataset.category === category);
     });
     renderCategoryProducts(category);
 }

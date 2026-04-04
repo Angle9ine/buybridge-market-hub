@@ -1,12 +1,74 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs/promises');
 const multer = require('multer');
 const cloudinary = require('cloudinary').v2;
 const OpenAI = require('openai');
 require('dotenv').config();
 
 const app = express();
-const port = 3000;
+const port = Number(process.env.PORT) || 3000;
+
+const dataDir = path.join(__dirname, 'data');
+const productsJsonPath = path.join(dataDir, 'products.json');
+const partnerLogosJsonPath = path.join(dataDir, 'partner-logos.json');
+const productImagesDir = path.join(__dirname, 'images', 'products');
+const partnerLogosDir = path.join(__dirname, 'images', 'logos');
+
+async function ensureDataDirs() {
+    await fs.mkdir(productImagesDir, { recursive: true });
+    await fs.mkdir(partnerLogosDir, { recursive: true });
+    await fs.mkdir(dataDir, { recursive: true });
+}
+
+async function readProductsFile() {
+    const raw = await fs.readFile(productsJsonPath, 'utf8');
+    const data = JSON.parse(raw);
+    const list = Array.isArray(data) ? data : (data.products || []);
+    return { wrapper: Array.isArray(data) ? null : data, products: list };
+}
+
+async function writeProductsFile(products, wrapper) {
+    const out = wrapper && typeof wrapper === 'object' && !Array.isArray(wrapper)
+        ? { ...wrapper, products }
+        : { products };
+    await fs.writeFile(productsJsonPath, JSON.stringify(out, null, 2), 'utf8');
+}
+
+async function readPartnerLogosFile() {
+    const raw = await fs.readFile(partnerLogosJsonPath, 'utf8');
+    return JSON.parse(raw);
+}
+
+async function writePartnerLogosFile(doc) {
+    await fs.writeFile(partnerLogosJsonPath, JSON.stringify(doc, null, 2), 'utf8');
+}
+
+const catalogProductStorage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, productImagesDir),
+    filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname || '').toLowerCase() || '.jpg';
+        const safe = path.basename(file.originalname || 'image', ext).replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 60);
+        cb(null, `product-${Date.now()}-${safe}${ext}`);
+    }
+});
+const uploadCatalogProduct = multer({
+    storage: catalogProductStorage,
+    limits: { fileSize: 12 * 1024 * 1024 }
+});
+
+const catalogLogoStorage = multer.diskStorage({
+    destination: (req, file, cb) => cb(null, partnerLogosDir),
+    filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname || '').toLowerCase() || '.png';
+        const safe = path.basename(file.originalname || 'logo', ext).replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 60);
+        cb(null, `partner-${Date.now()}-${safe}${ext}`);
+    }
+});
+const uploadCatalogLogo = multer({
+    storage: catalogLogoStorage,
+    limits: { fileSize: 6 * 1024 * 1024 }
+});
 
 // Configure Cloudinary
 cloudinary.config({
@@ -31,6 +93,66 @@ app.use('/public', express.static(path.join(__dirname, 'public')));
 
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+app.get('/admin-catalog.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin-catalog.html'));
+});
+
+// ----- Local catalog (JSON + disk images) — use admin-catalog.html while server is running -----
+app.post('/api/catalog/product', uploadCatalogProduct.single('image'), async (req, res) => {
+    try {
+        const name = (req.body.name || '').trim();
+        const category = (req.body.category || '').trim();
+        const description = (req.body.description || '').trim();
+        const price = Number(req.body.price);
+
+        if (!name || !category || !Number.isFinite(price) || price < 0) {
+            return res.status(400).json({ error: 'name, category, and a valid price are required' });
+        }
+        if (!req.file) {
+            return res.status(400).json({ error: 'product image file is required' });
+        }
+
+        const relImg = `images/products/${req.file.filename}`;
+        const { wrapper, products } = await readProductsFile();
+        const nextId = products.reduce((m, p) => Math.max(m, Number(p.id) || 0), 0) + 1;
+        products.push({
+            id: nextId,
+            name,
+            price,
+            category,
+            description,
+            img: relImg
+        });
+        await writeProductsFile(products, wrapper);
+        res.json({ success: true, product: products[products.length - 1] });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Failed to save product' });
+    }
+});
+
+app.post('/api/catalog/partner-logo', uploadCatalogLogo.single('image'), async (req, res) => {
+    try {
+        const displayName = (req.body.name || '').trim();
+        if (!displayName) {
+            return res.status(400).json({ error: 'partner display name is required' });
+        }
+        if (!req.file) {
+            return res.status(400).json({ error: 'logo image file is required' });
+        }
+
+        const doc = await readPartnerLogosFile();
+        const base = doc.base || 'images/logos/';
+        const partners = Array.isArray(doc.partners) ? doc.partners : [];
+        partners.push({ file: req.file.filename, name: displayName });
+        await writePartnerLogosFile({ base, partners });
+        res.json({ success: true, partner: partners[partners.length - 1], base });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: 'Failed to save partner logo' });
+    }
 });
 
 // ======================
@@ -161,21 +283,28 @@ app.use((req, res) => {
 
 const host = process.env.HOST || '0.0.0.0';
 
-const server = app.listen(port, host, () => {
-    console.log(`
+ensureDataDirs()
+    .then(() => {
+        const server = app.listen(port, host, () => {
+            console.log(`
     --------------------------------------------------
     BuyBridge server running
-    Open in browser: http://127.0.0.1:${port}
-    (also reachable on your LAN at http://<this-pc-ip>:${port})
+    Storefront: http://127.0.0.1:${port}
+    Catalog admin: http://127.0.0.1:${port}/admin-catalog.html
     --------------------------------------------------
     `);
-});
+        });
 
-server.on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
-        console.error(`Port ${port} is already in use. Stop the other process, or use another port (e.g. PORT=3001 node server.js).`);
-    } else {
-        console.error(err);
-    }
-    process.exit(1);
-});
+        server.on('error', (err) => {
+            if (err.code === 'EADDRINUSE') {
+                console.error(`Port ${port} is already in use. Stop the other process, or use another port (e.g. PORT=3001 node server.js).`);
+            } else {
+                console.error(err);
+            }
+            process.exit(1);
+        });
+    })
+    .catch((err) => {
+        console.error('Failed to create data/image folders:', err);
+        process.exit(1);
+    });
