@@ -92,6 +92,39 @@
         .toast { position: fixed; top: 20px; right: 20px; background: var(--gold); color: var(--dark); padding: 15px 20px; border-radius: 5px; font-weight: 600; z-index: 10000; transform: translateX(400px); transition: transform 0.3s ease; }
 
         footer { background: var(--dark); color: #666; padding: 50px 8%; text-align: center; }
+
+        .brand-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .brand-modal.active { display: flex; }
+        .brand-modal-content {
+            background: var(--white);
+            padding: 28px 24px 24px;
+            border-radius: 8px;
+            max-width: 420px;
+            width: 100%;
+            position: relative;
+            border: 1px solid var(--border);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+        }
+        .brand-modal-close {
+            position: absolute;
+            top: 10px;
+            right: 12px;
+            border: none;
+            background: none;
+            font-size: 1.5rem;
+            line-height: 1;
+            cursor: pointer;
+            color: var(--dark);
+        }
     </style>
 </head>
 <body>
@@ -203,20 +236,7 @@
 <section class="brands-showcase" id="brands">
     <div class="section-header"><h2>Trusted Partners</h2></div>
     <p style="color: #666; margin-bottom: 40px; font-size: 1.1rem;">We work with leading brands to deliver quality solutions</p>
-    <div class="brands-grid">
-        <div class="brand-logo"><img src="/logos/afriipower.png" alt="Afriipower" style="width: 100%; height: 100%; object-fit: contain;"></div>
-        <div class="brand-logo"><img src="/logos/eastman.png" alt="Eastman" style="width: 100%; height: 100%; object-fit: contain;"></div>
-        <div class="brand-logo"><img src="/logos/felicity.png" alt="Felicity" style="width: 100%; height: 100%; object-fit: contain;"></div>
-        <div class="brand-logo"><img src="/logos/infinity.jpg" alt="Infinity" style="width: 100%; height: 100%; object-fit: contain;"></div>
-        <div class="brand-logo"><img src="/logos/luminous.jpg" alt="Luminous" style="width: 100%; height: 100%; object-fit: contain;"></div>
-        <div class="brand-logo"><img src="/logos/apple.jpeg" alt="Apple" style="width: 100%; height: 100%; object-fit: contain;"></div>
-        <div class="brand-logo"><img src="/logos/hisense.jpeg" alt="Hisense" style="width: 100%; height: 100%; object-fit: contain;"></div>
-        <div class="brand-logo"><img src="/logos/lg.jpeg" alt="LG" style="width: 100%; height: 100%; object-fit: contain;"></div>
-        <div class="brand-logo"><img src="/logos/panasonic.jpeg" alt="Panasonic" style="width: 100%; height: 100%; object-fit: contain;"></div>
-        <div class="brand-logo"><img src="/logos/pbs.jpeg" alt="PBS" style="width: 100%; height: 100%; object-fit: contain;"></div>
-        <div class="brand-logo"><img src="/logos/rts.jpeg" alt="RTS" style="width: 100%; height: 100%; object-fit: contain;"></div>
-        <div class="brand-logo"><img src="/logos/sharp.jpeg" alt="Sharp" style="width: 100%; height: 100%; object-fit: contain;"></div>
-    </div>
+    <div class="brands-grid" id="brands-grid" aria-label="Partner logos"></div>
 </section>
 
 
@@ -250,6 +270,33 @@
 <footer><p>&copy; 2026 BuyBridge Market Hub</p></footer>
 
 <script>
+const PARTNER_LOGO_BASE = 'images/logos/';
+const PARTNER_LOGOS = [
+    { file: 'afriipower.png', name: 'Afriipower' },
+    { file: 'eastman.png', name: 'Eastman' },
+    { file: 'felicity.png', name: 'Felicity' },
+    { file: 'infinity.jpg', name: 'Infinity' },
+    { file: 'luminous.jpg', name: 'Luminous' },
+    { file: 'apple.jpeg', name: 'Apple' },
+    { file: 'hisense.jpeg', name: 'Hisense' },
+    { file: 'lg.jpeg', name: 'LG' },
+    { file: 'panasonic.jpeg', name: 'Panasonic' },
+    { file: 'pbs.jpeg', name: 'PBS' },
+    { file: 'rts.jpeg', name: 'RTS' },
+    { file: 'sharp.jpeg', name: 'Sharp' }
+];
+
+function renderPartnerLogos() {
+    const grid = document.getElementById('brands-grid');
+    if (!grid) return;
+    grid.innerHTML = PARTNER_LOGOS.map(
+        (p) => `
+        <div class="brand-logo">
+            <img src="${PARTNER_LOGO_BASE}${p.file}" alt="${p.name} logo" width="200" height="140" loading="lazy" decoding="async" style="width: 100%; height: 100%; object-fit: contain;">
+        </div>`
+    ).join('');
+}
+
 const products = [
     { id: 1, name: 'Solar Inverter 5kWh', price: 150000, img: 'https://via.placeholder.com/300x250/D4AF37/121212?text=Solar+Inverter', category: 'Renewable Energy' },
     { id: 2, name: 'Solar Panels 300W (Set of 4)', price: 280000, img: 'https://via.placeholder.com/300x250/121212/ffffff?text=Solar+Panels', category: 'Renewable Energy' },
@@ -384,19 +431,12 @@ function addToCart(id) {
         cart.push({ ...product, quantity: 1 });
     }
     localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartCount();
     renderProducts();
     showNotification(`${product.name} added to cart!`);
 }
 
 function getCartTotal() {
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-}
-
-function updateCartCount() {
-    const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-    const cartBtn = document.getElementById('cart-btn');
-    if (cartBtn) cartBtn.innerHTML = cart.length > 0 ? `Cart (${count})` : 'Place Order';
 }
 
 function showNotification(message) {
@@ -450,11 +490,6 @@ function selectCategory(category) {
         chip.classList.toggle('active', chip.textContent === (category === 'all' ? 'All Products' : category));
     });
     renderCategoryProducts(category);
-}
-
-function enterWebsite() {
-    const overlay = document.getElementById('entry-overlay');
-    if (overlay) overlay.style.display = 'none';
 }
 
 function registerUser(event) {
@@ -530,7 +565,8 @@ function sendChatMessage(event) {
     const message = document.getElementById('chat-message').value.trim();
     if (!message) return;
 
-    const whatsappUrl = `https://wa.me/2349158526386?text=${encodeURIComponent(`Hi, I'm ${currentCustomer.name}. ${message}`)}`;
+    const who = isRegistered() ? currentCustomer.name : 'a BuyBridge visitor';
+    const whatsappUrl = `https://wa.me/2349158526386?text=${encodeURIComponent(`Hi, I'm ${who}. ${message}`)}`;
     window.open(whatsappUrl, '_blank');
 
     const msg = document.getElementById('chat-msg');
@@ -555,9 +591,9 @@ function showForgotPassword() {
 }
 
 function closeForgotPasswordModal(event) {
-    if (event.target.id === 'forgot-password-modal' || event.target.className === 'brand-modal-close') {
-        const modal = document.getElementById('forgot-password-modal');
-        modal.classList.remove('active');
+    const t = event.target;
+    if (t.id === 'forgot-password-modal' || (t.classList && t.classList.contains('brand-modal-close'))) {
+        document.getElementById('forgot-password-modal').classList.remove('active');
     }
 }
 
@@ -632,7 +668,6 @@ function updateCartDisplay() {
 function removeFromCart(id) {
     cart = cart.filter(item => item.id !== id);
     localStorage.setItem('cart', JSON.stringify(cart));
-    updateCartCount();
     renderProducts();
     updateCartDisplay();
 }
@@ -650,8 +685,8 @@ window.addEventListener('DOMContentLoaded', () => {
     `;
     
     initializeCategoryGallery();
+    renderPartnerLogos();
     renderProducts();
-    updateCartCount();
     updateAuthUI();
 });
 </script>
