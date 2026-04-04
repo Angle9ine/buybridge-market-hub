@@ -276,6 +276,74 @@ function logProduct(name, price, category, description, imageUrl) {
     console.log('════════════════════════════════════');
 }
 
+const BUYBRIDGE_BOT_SYSTEM = `You are the friendly assistant for BuyBridge Market Hub (Nigeria). You help with:
+solar and energy products, security/CCTV, digital services, consulting, maintenance supplies, and the online market catalog.
+Be concise and practical. Prices are typically in Nigerian Naira (₦). For payments, orders, or account-specific help, direct users to register on the site, use "Make Order", or WhatsApp +234 915 852 6386.
+If you do not know something specific about stock or delivery, say so and suggest WhatsApp. Never invent exact prices; suggest they check the Market catalog or contact the team.`;
+
+async function catalogSummaryForBot() {
+    try {
+        const { products } = await readProductsFile();
+        if (!products.length) return '';
+        const categories = [...new Set(products.map((p) => p.category).filter(Boolean))].slice(0, 25);
+        const samples = products.slice(0, 45).map((p) => `${p.name} (${p.category})`).join('; ');
+        return `\nCurrent catalog hint — categories: ${categories.join(', ')}. Sample items: ${samples}`;
+    } catch {
+        return '';
+    }
+}
+
+app.post('/api/chat/bot', async (req, res) => {
+    try {
+        const key = process.env.OPENAI_API_KEY;
+        if (!key || key === 'your_openai_api_key') {
+            return res.status(503).json({
+                error: 'bot_unavailable',
+                reply: 'The assistant is not configured on this server yet. Please use WhatsApp +234 915 852 6386 for help, or run the site with OPENAI_API_KEY set in .env.'
+            });
+        }
+
+        const raw = req.body && req.body.messages;
+        if (!Array.isArray(raw) || raw.length === 0) {
+            return res.status(400).json({ error: 'messages array required' });
+        }
+
+        const cleaned = [];
+        for (const m of raw.slice(-24)) {
+            if (!m || typeof m !== 'object') continue;
+            const role = m.role === 'assistant' ? 'assistant' : m.role === 'user' ? 'user' : null;
+            const content = typeof m.content === 'string' ? m.content.trim().slice(0, 4000) : '';
+            if (!role || !content) continue;
+            cleaned.push({ role, content });
+        }
+        if (cleaned.length === 0 || cleaned[cleaned.length - 1].role !== 'user') {
+            return res.status(400).json({ error: 'last message must be from user' });
+        }
+
+        const catalogHint = await catalogSummaryForBot();
+        const model = process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini';
+
+        const completion = await openai.chat.completions.create({
+            model,
+            messages: [
+                { role: 'system', content: BUYBRIDGE_BOT_SYSTEM + catalogHint },
+                ...cleaned
+            ],
+            max_tokens: 700,
+            temperature: 0.6
+        });
+
+        const reply = (completion.choices && completion.choices[0] && completion.choices[0].message && completion.choices[0].message.content) || '';
+        res.json({ reply: reply.trim() || 'Sorry, I could not generate a reply. Try WhatsApp +234 915 852 6386.' });
+    } catch (err) {
+        console.error('Chat bot error:', err.message || err);
+        res.status(500).json({
+            error: 'chat_failed',
+            reply: 'Something went wrong. Please try again or message us on WhatsApp +234 915 852 6386.'
+        });
+    }
+});
+
 // 404 Handler
 app.use((req, res) => {
     res.status(404).send('Resource not found on BuyBridge Server.');
@@ -291,6 +359,7 @@ ensureDataDirs()
     BuyBridge server running
     Storefront: http://127.0.0.1:${port}
     Catalog admin: http://127.0.0.1:${port}/admin-catalog.html
+    Bot chat API: POST /api/chat/bot (set OPENAI_API_KEY in .env)
     --------------------------------------------------
     `);
         });
