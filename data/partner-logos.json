@@ -1,0 +1,17 @@
+{
+  "base": "images/logos/",
+  "partners": [
+    { "file": "afriipower.png", "name": "Afriipower" },
+    { "file": "eastman.png", "name": "Eastman" },
+    { "file": "felicity.png", "name": "Felicity" },
+    { "file": "infinity.jpg", "name": "Infinity" },
+    { "file": "luminous.jpg", "name": "Luminous" },
+    { "file": "apple.jpeg", "name": "Apple" },
+    { "file": "hisense.jpeg", "name": "Hisense" },
+    { "file": "lg.jpeg", "name": "LG" },
+    { "file": "panasonic.jpeg", "name": "Panasonic" },
+    { "file": "pbs.jpeg", "name": "PBS" },
+    { "file": "rts.jpeg", "name": "RTS" },
+    { "file": "sharp.jpeg", "name": "Sharp" }
+  ]
+}

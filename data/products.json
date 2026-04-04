@@ -1,0 +1,18 @@
+{
+  "products": [
+    { "id": 1, "name": "Solar Inverter 5kWh", "price": 150000, "category": "Renewable Energy", "img": "https://via.placeholder.com/300x250/D4AF37/121212?text=Solar+Inverter", "description": "" },
+    { "id": 2, "name": "Solar Panels 300W (Set of 4)", "price": 280000, "category": "Renewable Energy", "img": "https://via.placeholder.com/300x250/121212/ffffff?text=Solar+Panels", "description": "" },
+    { "id": 3, "name": "Lithium Battery 10kWh", "price": 950000, "category": "Renewable Energy", "img": "https://via.placeholder.com/300x250/eeeeee/D4AF37?text=Lithium+Battery", "description": "" },
+    { "id": 4, "name": "Smartphone X2", "price": 165000, "category": "Electronics & Gadgets", "img": "https://via.placeholder.com/300x250/eeeeee/121212?text=Smartphone", "description": "" },
+    { "id": 5, "name": "Laptop Pro 14\"", "price": 400000, "category": "Electronics & Gadgets", "img": "https://via.placeholder.com/300x250/121212/ffffff?text=Laptop", "description": "" },
+    { "id": 6, "name": "CCTV Camera Set (4CH)", "price": 45000, "category": "Security & Home", "img": "https://via.placeholder.com/300x250/121212/D4AF37?text=CCTV+Set", "description": "" },
+    { "id": 7, "name": "Power Bank 20,000mAh", "price": 25000, "category": "Electronics & Gadgets", "img": "https://via.placeholder.com/300x250/eeeeee/121212?text=Power+Bank", "description": "" },
+    { "id": 8, "name": "Everyday Food Pack", "price": 22000, "category": "Everyday Needs", "img": "https://via.placeholder.com/300x250/ffffff/121212?text=Food+Pack", "description": "" },
+    { "id": 9, "name": "Groceries Essentials", "price": 18000, "category": "Food & Consumables", "img": "https://via.placeholder.com/300x250/f7f1e4/121212?text=Groceries", "description": "" },
+    { "id": 11, "name": "Denim Jacket", "price": 32000, "category": "Clothing & Apparel", "img": "https://via.placeholder.com/300x250/c0c0c0/121212?text=Denim+Jacket", "description": "" },
+    { "id": 12, "name": "Sneakers (Unisex)", "price": 28000, "category": "Clothing & Apparel", "img": "https://via.placeholder.com/300x250/333333/ffffff?text=Sneakers", "description": "" },
+    { "id": 10, "name": "Website Design Pro", "price": 80000, "category": "Digital Services", "img": "https://via.placeholder.com/300x250/eeeeee/D4AF37?text=Web+Design", "description": "" },
+    { "id": 13, "name": "Business Strategy Session", "price": 120000, "category": "Consulting", "img": "https://via.placeholder.com/300x250/121212/ffffff?text=Strategy+Consult", "description": "" },
+    { "id": 15, "name": "Electronics Repair Service", "price": 25000, "category": "Maintenance", "img": "https://via.placeholder.com/300x250/eeeeee/121212?text=Electronics+Repair", "description": "" }
+  ]
+}
